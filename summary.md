@@ -170,3 +170,43 @@ Prepared the production environment documentation, strict-CSP client-bundle fix,
 All repository verification passed before push: ESLint, TypeScript, 9 automated tests, and the optimized production build. External read-only checks also confirmed that the configured Supabase tables are accessible, the Resend API key is valid, and the sending domain is verified.
 
 This establishes high confidence in the committed code, but production success still requires all 11 environment variables to be assigned to Vercel's **Production** scope and a new deployment to be created after those variables were saved. After Vercel deploys the pushed commit, verify that the login page no longer shows the environment warning, the browser no longer reports the CSP `eval` violation, and an allowlisted administrator receives an OTP.
+
+## 2026-09-16 — Safe Vercel fresh-deployment procedure
+
+Do not delete the entire Vercel project as a first troubleshooting step. Deleting the project would also remove its custom-domain attachment, environment-variable configuration, deployment history, and other project settings. It is unnecessary for clearing a stale build.
+
+Use this safe fresh-deployment procedure instead:
+
+1. Open the existing Vercel project and go to **Settings → Environment Variables**.
+2. Confirm all 11 variables listed in the production incident section are assigned to **Production**. Saving variables in Preview or Development does not make them available to the production deployment.
+3. Go to **Settings → Build and Deployment** and confirm the Root Directory is `apps/admin`.
+4. Open **Deployments**, select the newest deployment for Git commit `32c498c`, and choose **Redeploy**.
+5. Disable/reject reuse of the previous build cache when prompted so Vercel performs a clean build.
+6. Wait until the deployment status is **Ready** before testing the custom domain.
+7. Verify that `https://admin.gologs.com.ng/login` no longer displays the environment-configuration warning, then request an OTP using an allowlisted administrator email.
+
+Deleting only an obsolete deployment after the new deployment is healthy is optional; it does not repair environment variables. Do not delete the whole Vercel project unless intentionally rebuilding its domain, settings, and variables from scratch.
+
+## 2026-09-16 — Temporary public read-only demo mode
+
+Implemented an emergency demo mode so the dashboard can be shown without login while protecting production writes and identities.
+
+Safety boundaries:
+
+- The dashboard displays fixed sample metrics and sample team identities; it does not expose live Supabase overview or membership records.
+- Authentication is bypassed only for viewing pages during the temporary demo window.
+- Existing API write handlers retain their own authentication, webhook-token, or validation checks. The team invitation action is removed from the demo team page.
+- A visible banner identifies the site as a public read-only demo.
+- The automatic demo window expires at `2026-09-17T00:00:00Z`, which is 5:00 PM Pacific on September 16, 2026.
+- Set `DEMO_MODE=false` in Vercel and redeploy to close demo mode immediately. Setting `DEMO_MODE=true` explicitly would override the automatic expiry and should not be used unless a longer window is intentionally required.
+
+Verification completed:
+
+- ESLint passed with zero warnings.
+- TypeScript passed.
+- All 12 automated tests passed, including demo activation, expiry, and emergency-disable tests.
+- The optimized production build passed.
+- A local production-server request to `/` returned HTTP 200 without redirecting to login.
+- The response contained the demo banner and fixed sample metric data.
+
+After the demo, add `DEMO_MODE=false` to Vercel's Production environment and redeploy. Then continue repairing the complete production authentication environment before restoring normal admin access.

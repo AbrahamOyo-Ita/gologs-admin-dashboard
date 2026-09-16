@@ -1,5 +1,6 @@
 import {createSupabaseServerClient} from "@/lib/supabase/server";
 import {readEnvironment} from "@/lib/env";
+import {isDemoMode} from "@/lib/demo-mode";
 
 export type OverviewMetricKey = "landing_visitors" | "newsletter_confirmed" | "news_published" | "app_download_clicks" | "gowash_interest" | "gocarry_interest" | "delivery_rate" | "failed_jobs";
 export type OverviewMetric = {key:OverviewMetricKey;label:string;definition:string;value:number|null;unit:"count"|"percent"};
@@ -18,7 +19,13 @@ const metricDefinitions:Record<OverviewMetricKey,Omit<OverviewMetric,"value">>={
 
 function emptyData(status:OverviewData["status"]):OverviewData{return{status,refreshedAt:null,metrics:Object.values(metricDefinitions).map((definition)=>({...definition,value:null})),trafficSeries:Array(8).fill(null),conversionSeries:Array(8).fill(null),serviceMix:[],timezone:"America/Los_Angeles"}}
 
+function demoData():OverviewData{
+  const values:Record<OverviewMetricKey,number>={landing_visitors:18420,newsletter_confirmed:1268,news_published:24,app_download_clicks:3910,gowash_interest:2840,gocarry_interest:2175,delivery_rate:97.8,failed_jobs:3};
+  return{status:"ready",refreshedAt:new Date().toISOString(),metrics:Object.values(metricDefinitions).map((definition)=>({...definition,value:values[definition.key]})),trafficSeries:[1280,1640,1920,2380,2710,2940,3210,3340],conversionSeries:[82,104,126,151,177,194,211,223],serviceMix:[{label:"GoWash",value:2840},{label:"GoCarry",value:2175},{label:"GO app",value:3910}],timezone:"America/Los_Angeles"};
+}
+
 export async function getOverviewData():Promise<OverviewData>{
+  if(isDemoMode())return demoData();
   if(!readEnvironment().configured)return emptyData("unconfigured");
   try{
     const supabase=await createSupabaseServerClient();

@@ -3,9 +3,14 @@ import {createSupabaseServerClient} from "@/lib/supabase/server";
 import {PageHeader} from "@/components/page-primitives";
 import {TeamInviteButton} from "@/components/team-invite-button";
 import {roleCapabilities} from "@/lib/auth/permissions";
+import {isDemoMode} from "@/lib/demo-mode";
 
 export const dynamic="force-dynamic";
 export default async function TeamPage(){
+  if(isDemoMode()){
+    const members=[{name:"Demo Operator",email:"operator@example.com",role:"Operations admin",access:"Dashboard, reporting, campaigns",last:"Today, 9:12 AM"},{name:"Content Lead",email:"content@example.com",role:"Editor",access:"News, newsletters, media",last:"Yesterday, 4:38 PM"},{name:"Support Analyst",email:"support@example.com",role:"Analyst",access:"Read-only reports and audit",last:"Sep 15, 2:04 PM"}];
+    return <div className="space-y-6 pb-8"><PageHeader title="Team & access" description="Read-only sample access roster for the public demo."/><section className="overflow-hidden rounded-3xl border border-border bg-white shadow-xs"><div className="border-b border-border-subtle px-6 py-4"><h2 className="font-semibold text-navy">Demo workspace members</h2><p className="mt-1 text-xs text-muted">Illustrative records only. No production identities are exposed.</p></div><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead><tr className="border-b border-border-subtle bg-surface-subtle/60">{["Member","Role","Access","Status","Last active"].map((heading)=><th scope="col" key={heading} className="px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-muted">{heading}</th>)}</tr></thead><tbody>{members.map((member)=><tr className="border-b border-border-subtle last:border-0" key={member.email}><td className="px-6 py-4"><div className="font-semibold text-navy">{member.name}</div><div className="text-xs text-muted">{member.email}</div></td><td className="px-6 py-4 text-muted">{member.role}</td><td className="max-w-sm px-6 py-4 text-xs text-muted">{member.access}</td><td className="px-6 py-4"><span className="rounded-full bg-success-subtle px-2.5 py-1 text-xs font-semibold text-emerald-700">Demo</span></td><td className="px-6 py-4 text-muted">{member.last}</td></tr>)}</tbody></table></div></section></div>;
+  }
   const auth=await createSupabaseServerClient();const {data:{user}}=await auth.auth.getUser();
   if(!user)return null;
   const admin=createSupabaseAdminClient();

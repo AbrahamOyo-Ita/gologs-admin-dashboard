@@ -5,6 +5,7 @@ import { moduleDetails, type ModuleKey } from "@/lib/navigation";
 import { readEnvironment } from "@/lib/env";
 import { ChevronDown, Search } from "lucide-react";
 import { TeamInviteButton } from "@/components/team-invite-button";
+import { isDemoMode } from "@/lib/demo-mode";
 
 type Props = { params: Promise<{ section: string }> };
 
@@ -22,6 +23,8 @@ export default async function ModulePage({ params }: Props) {
   if (!isModuleKey(section)) notFound();
   const detail = moduleDetails[section];
   const environment = readEnvironment();
+  const demoMode = isDemoMode();
+  const configured = demoMode || environment.configured;
 
   return (
     <div className="space-y-6 pb-8">
@@ -29,10 +32,10 @@ export default async function ModulePage({ params }: Props) {
         title={detail.title}
         description={detail.description}
         action={section === "team" ? undefined : detail.action}
-        actionNode={section === "team" ? <TeamInviteButton /> : undefined}
+        actionNode={section === "team" && !demoMode ? <TeamInviteButton /> : undefined}
       />
 
-      {!environment.configured && <SetupNotice issues={environment.issues} />}
+      {!configured && !environment.configured && <SetupNotice issues={environment.issues} />}
 
       {section === "newsletters" && (
         <InfoBanner>
@@ -53,7 +56,7 @@ export default async function ModulePage({ params }: Props) {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-3.5 text-muted" />
             <input
               id="filter"
-              disabled={!environment.configured}
+              disabled={!configured}
               className="h-10 min-w-64 rounded-full border border-border bg-white pl-9 pr-4 text-xs shadow-xs outline-none transition placeholder:text-muted focus:border-primary disabled:opacity-60"
               placeholder={`Filter ${detail.noun}…`}
             />
@@ -61,7 +64,7 @@ export default async function ModulePage({ params }: Props) {
 
           <div className="relative">
             <select
-              disabled={!environment.configured}
+              disabled={!configured}
               aria-label="Status filter"
               className="h-10 appearance-none rounded-full border border-border bg-white pl-4 pr-9 text-xs font-semibold text-slate-700 shadow-xs outline-none transition hover:bg-surface-subtle disabled:opacity-60"
             >
