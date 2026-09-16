@@ -196,6 +196,7 @@ Safety boundaries:
 - The dashboard displays fixed sample metrics and sample team identities; it does not expose live Supabase overview or membership records.
 - Authentication is bypassed only for viewing pages during the temporary demo window.
 - Existing API write handlers retain their own authentication, webhook-token, or validation checks. The team invitation action is removed from the demo team page.
+- The administrative team-invitation endpoint has an explicit demo-mode guard and returns HTTP 403 before parsing or performing any write.
 - A visible banner identifies the site as a public read-only demo.
 - The automatic demo window expires at `2026-09-17T00:00:00Z`, which is 5:00 PM Pacific on September 16, 2026.
 - Set `DEMO_MODE=false` in Vercel and redeploy to close demo mode immediately. Setting `DEMO_MODE=true` explicitly would override the automatic expiry and should not be used unless a longer window is intentionally required.
