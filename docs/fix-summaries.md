@@ -52,6 +52,43 @@ Launch verification checklist:
 
 Resend uses signed, at-least-once webhook delivery, so duplicate event handling is required. References: [Resend webhook guide](https://resend.com/docs/webhooks/introduction) and [Svix verification guide](https://docs.svix.com/receiving/verifying-payloads/how).
 
+## 2026-09-16 — Configure `admin.gologs.com.ng` on Truehost and Vercel
+
+1. In Vercel, open the admin project and go to **Settings → Domains → Add Domain**.
+2. Add `admin.gologs.com.ng`.
+3. In Truehost DNS management for `gologs.com.ng`, add the exact CNAME record Vercel displays. It is commonly:
+
+```text
+Type: CNAME
+Host: admin
+Target: cname.vercel-dns.com
+TTL: Automatic
+```
+
+Do not include `https://` in the target. Remove any conflicting `A` or `CNAME` record for the `admin` host. Return to Vercel and verify the domain. Vercel provisions HTTPS after successful verification.
+
+Set the Vercel variable:
+
+```env
+ADMIN_ORIGIN=https://admin.gologs.com.ng
+```
+
+In Supabase, add this redirect URL under **Authentication → URL Configuration → Redirect URLs**:
+
+```text
+https://admin.gologs.com.ng/auth/callback
+```
+
+Register the Resend webhook at:
+
+```text
+https://admin.gologs.com.ng/api/webhooks/v1/email/YOUR_ENDPOINT_TOKEN
+```
+
+Use the latest GitHub commit for deployment; the failed build log referenced the older commit `334d25d`.
+
+Reference: [Vercel custom domain setup](https://vercel.com/docs/domains/set-up-custom-domain).
+
 ## 2026-09-16 — Production Resend webhook receiver
 
 Implemented and pushed in commit `da36610`.
