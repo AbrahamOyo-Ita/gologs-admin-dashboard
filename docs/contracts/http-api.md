@@ -23,6 +23,8 @@ Admin mutations are same-origin server actions or `/api/admin/v1/*` handlers. Ea
 `POST /api/webhooks/v1/email/:endpointToken`
 
 Verify the raw-body signature and timestamp before JSON parsing. Store the unique provider event ID, reject replays, acknowledge accepted events quickly, and normalize asynchronously. Secret rotation supports current and previous secret during a bounded overlap.
+
+The production URL is `https://admin.gologs.com.ng/api/webhooks/v1/email/<EMAIL_WEBHOOK_ENDPOINT_TOKEN>`. Resend/Svix sends `svix-id`, `svix-timestamp`, and `svix-signature` headers (Standard Webhooks aliases are also accepted). Requests older than five minutes, invalid signatures, oversized payloads, and malformed events are rejected. Duplicate deliveries are acknowledged without creating a second event or job. Keep the endpoint token and signing secret server-only.
 ## Public newsletter subscription
 
 `POST https://admin.<domain>/api/public/newsletter` accepts `{ email, consent: true, source?, policyVersion? }`. The public landing form must call this endpoint and only show success after a `200` response. It returns generic errors and persists an idempotent pending subscriber plus consent event.
