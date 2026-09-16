@@ -1,7 +1,7 @@
 "use client";
 import {useCallback,useEffect,useRef,useState} from "react";
 import {ArrowLeft,Check,Mail,RefreshCw} from "lucide-react";
-import {OTP_RESEND_SECONDS} from "@/lib/auth/otp";
+import {OTP_RESEND_SECONDS} from "@/lib/auth/constants";
 const DIGITS=6,ORBIT_MS=800,SUCCESS_HOLD_MS=700;
 type Stage="email"|"code"|"success"; type Notice={message:string;kind:"error"|"info"}|null;
 const maskEmail=(email:string)=>{const [local,domain]=email.split("@");return local&&domain?`${local[0]}${"*".repeat(Math.max(2,Math.min(5,local.length-1)))}@${domain}`:email};
