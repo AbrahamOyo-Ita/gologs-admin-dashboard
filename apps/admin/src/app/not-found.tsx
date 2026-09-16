@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function NotFound(){return <main className="grid min-h-dvh place-items-center bg-background p-6 text-center"><div><p className="font-mono text-sm text-primary">404</p><h1 className="mt-3 text-3xl font-semibold text-navy">Page not found</h1><p className="mt-2 text-muted">The admin destination you requested does not exist.</p><Link href="/" className="mt-6 inline-flex rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white">Return to overview</Link></div></main>}

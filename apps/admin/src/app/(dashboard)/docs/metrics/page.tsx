@@ -1,0 +1,2 @@
+import {PageHeader} from "@/components/page-primitives";
+export default function MetricsPage(){return <><PageHeader title="Metric definitions" description="Canonical definitions used by GO dashboards and exports."/><div className="rounded-lg border border-border bg-white p-6"><p className="text-sm text-muted">Metric definitions are versioned in <code className="rounded bg-surface-subtle px-1.5 py-1 font-mono text-xs">docs/analytics/event-taxonomy.md</code>. The dashboard never substitutes estimates or demo values for missing production aggregates.</p></div></>}

@@ -1,0 +1,7 @@
+export const articleStates=["draft","in_review","approved","scheduled","published","archived","rejected"] as const; export type ArticleState=(typeof articleStates)[number];
+export const campaignStates=["draft","in_review","approved","scheduled","preparing","sending","paused","sent","cancelled","failed"] as const; export type CampaignState=(typeof campaignStates)[number];
+const articleTransitions:Record<ArticleState,readonly ArticleState[]>={draft:["in_review","archived"],in_review:["approved","rejected","draft"],approved:["scheduled","published","draft"],scheduled:["published","draft"],published:["archived"],archived:["draft"],rejected:["draft"]};
+const campaignTransitions:Record<CampaignState,readonly CampaignState[]>={draft:["in_review","cancelled"],in_review:["approved","draft","cancelled"],approved:["scheduled","preparing","draft","cancelled"],scheduled:["preparing","cancelled"],preparing:["sending","failed","cancelled"],sending:["paused","sent","failed"],paused:["sending","cancelled"],sent:[],cancelled:[],failed:["preparing","cancelled"]};
+function canTransition<T extends string>(graph:Record<T,readonly T[]>,from:T,to:T){return graph[from].includes(to)}
+export function canTransitionArticle(from:ArticleState,to:ArticleState){return canTransition(articleTransitions,from,to)}
+export function canTransitionCampaign(from:CampaignState,to:CampaignState){return canTransition(campaignTransitions,from,to)}

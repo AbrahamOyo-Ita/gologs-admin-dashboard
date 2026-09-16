@@ -1,0 +1,20 @@
+import {createSupabaseAdminClient} from "@/lib/supabase/admin";
+import {createSupabaseServerClient} from "@/lib/supabase/server";
+import {PageHeader} from "@/components/page-primitives";
+import {TeamInviteButton} from "@/components/team-invite-button";
+import {roleCapabilities} from "@/lib/auth/permissions";
+
+export const dynamic="force-dynamic";
+export default async function TeamPage(){
+  const auth=await createSupabaseServerClient();const {data:{user}}=await auth.auth.getUser();
+  if(!user)return null;
+  const admin=createSupabaseAdminClient();
+  const {data:own}=await admin.from("memberships").select("id,workspace_id,status").eq("user_id",user.id).eq("status","active").limit(1).maybeSingle();
+  const {data:members}=own?await admin.from("memberships").select("id,user_id,status,last_accessed_at").eq("workspace_id",own.workspace_id).order("created_at",{ascending:true}):{data:[]};
+  const ids=(members??[]).map((member)=>member.user_id);const membershipIds=(members??[]).map((member)=>member.id);const {data:profiles}=ids.length?await admin.from("profiles").select("id,display_name").in("id",ids):{data:[]};
+  const {data:assignments}=membershipIds.length?await admin.from("membership_roles").select("membership_id,role_id").in("membership_id",membershipIds):{data:[]};
+  const roleIds=(assignments??[]).map((assignment)=>assignment.role_id);const {data:roles}=roleIds.length?await admin.from("roles").select("id,name,key").in("id",roleIds):{data:[]};
+  const names=new Map((profiles??[]).map((profile)=>[profile.id,profile.display_name]));
+  const roleNames=new Map((roles??[]).map((role)=>[role.id,role.name]));
+ return <div className="space-y-6 pb-8"><PageHeader title="Team & access" description="Invite members, assign least-privilege roles, and review privileged access." actionNode={<TeamInviteButton/>}/><section className="overflow-hidden rounded-3xl border border-border bg-white shadow-xs"><div className="border-b border-border-subtle px-6 py-4"><h2 className="font-semibold text-navy">Workspace members</h2><p className="mt-1 text-xs text-muted">Live membership data from GO Operations.</p></div><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead><tr className="border-b border-border-subtle bg-surface-subtle/60">{["Member","Role","Access","Status","Last active"].map((heading)=><th scope="col" key={heading} className="px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-muted">{heading}</th>)}</tr></thead><tbody>{(members??[]).map((member)=><tr className="border-b border-border-subtle last:border-0" key={member.user_id}><td className="px-6 py-4"><div className="font-semibold text-navy">{names.get(member.user_id)??(member.user_id===user.id?(user.email??"GO operator"):"GO member")}</div><div className="text-xs text-muted">{member.user_id===user.id?user.email:"Workspace member"}</div></td><td className="px-6 py-4 text-muted">{(assignments??[]).filter((assignment)=>assignment.membership_id===member.id).map((assignment)=>roleNames.get(assignment.role_id)).filter(Boolean).join(", ")||"No role assigned"}</td><td className="max-w-sm px-6 py-4 text-xs text-muted">{(assignments??[]).filter((assignment)=>assignment.membership_id===member.id).flatMap((assignment)=>{const role=roles?.find((item)=>item.id===assignment.role_id);return role&&role.key in roleCapabilities?[...roleCapabilities[role.key as keyof typeof roleCapabilities]]:[]}).join(", ")||"No permissions assigned"}</td><td className="px-6 py-4"><span className="rounded-full bg-success-subtle px-2.5 py-1 text-xs font-semibold text-emerald-700">{member.status}</span></td><td className="px-6 py-4 text-muted">{member.last_accessed_at?new Date(member.last_accessed_at).toLocaleString():"Not yet active"}</td></tr>)}</tbody></table></div></section></div>;
+}
